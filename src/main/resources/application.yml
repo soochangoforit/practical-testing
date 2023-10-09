@@ -45,6 +45,7 @@ spring:
       hibernate:
         format_sql: true
 
+  # test 상에서는 given 데이터를 만들꺼기 때문에 data.sql 실행하지 않도록 한다.
   sql:
     init:
       mode: never
