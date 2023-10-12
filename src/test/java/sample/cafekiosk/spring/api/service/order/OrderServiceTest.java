@@ -8,7 +8,8 @@ import static sample.cafekiosk.spring.domain.product.ProductType.HANDMADE;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
+import javax.transaction.Transactional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import sample.cafekiosk.spring.domain.product.ProductType;
 
 @ActiveProfiles("test")
 @SpringBootTest
+@Transactional
 class OrderServiceTest {
 
     @Autowired
@@ -39,12 +41,12 @@ class OrderServiceTest {
     @Autowired
     private OrderProductRepository orderProductRepository;
 
-    @AfterEach
-    void tearDown() {
-        orderProductRepository.deleteAllInBatch();
-        productRepository.deleteAllInBatch();
-        orderRepository.deleteAllInBatch();
-    }
+//    @AfterEach
+//    void tearDown() {
+//        orderProductRepository.deleteAllInBatch();
+//        productRepository.deleteAllInBatch();
+//        orderRepository.deleteAllInBatch();
+//    }
 
     @DisplayName("주문번호 리스트를 받아 주문을 생성한다.")
     @Test
