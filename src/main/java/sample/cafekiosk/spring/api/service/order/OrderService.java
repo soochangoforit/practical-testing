@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import sample.cafekiosk.spring.domain.stock.StockRepository;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class OrderService {
 
     private final ProductRepository productRepository;
@@ -47,7 +50,7 @@ public class OrderService {
         Map<String, Long> productCountingMap = stockProductNumbers.stream()
                 .collect(Collectors.groupingBy(productNumber -> productNumber, Collectors.counting()));
 
-        // 재고 차감 시도
+        // 재고 차감 시도 (stockProductNumbers에 대해서는 중복 제거를 해줘야 한다)
         for (String stockProductNumebr : new HashSet<>(stockProductNumbers)) {
             Stock stock = stockMap.get(stockProductNumebr);
             int buyQuantity = productCountingMap.get(stockProductNumebr).intValue();
