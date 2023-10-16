@@ -30,37 +30,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final StockRepository stockRepository;
 
+    /**
+     * 재고 감소 (동시성 문제의 대표적인 문제)
+     */
     public OrderResponse createOrder(OrderCreateRequest request, LocalDateTime registeredDateTime) {
         List<String> productNumbers = request.getProductNumbers();
         List<Product> products = findProductBy(productNumbers);
 
-        // 재고 차감 대상인 상품들만 filter
-        List<String> stockProductNumbers = products.stream()
-                .filter(product -> ProductType.containsStockType(product.getType()))
-                .map(product -> product.getProductNumber())
-                .collect(Collectors.toList());
-
-        // 재고 엔티티 조회
-        List<Stock> stocks = stockRepository.findAllByProductNumberIn(stockProductNumbers);
-        // list을 계속적으로 돌긴 보단, map으로 바꿔서 조회하는게 더 효율적이다.
-        Map<String, Stock> stockMap = stocks.stream()
-                .collect(Collectors.toMap(Stock::getProductNumber, stock -> stock));
-
-        // 상품별 counting
-        Map<String, Long> productCountingMap = stockProductNumbers.stream()
-                .collect(Collectors.groupingBy(productNumber -> productNumber, Collectors.counting()));
-
-        // 재고 차감 시도 (stockProductNumbers에 대해서는 중복 제거를 해줘야 한다)
-        for (String stockProductNumebr : new HashSet<>(stockProductNumbers)) {
-            Stock stock = stockMap.get(stockProductNumebr);
-            int buyQuantity = productCountingMap.get(stockProductNumebr).intValue();
-
-            if (stock.isQuantityLessThan(buyQuantity)) {
-                throw new IllegalArgumentException("재고가 부족한 상품이 있습니다.");
-            }
-            stock.deductQuantity(buyQuantity);
-
-        }
+        deductStockQuqntities(products);
 
         Order order = Order.create(products, registeredDateTime);
         Order savedOrder = orderRepository.save(order);
@@ -76,6 +53,50 @@ public class OrderService {
         return productNumbers.stream()
                 .map(productMap::get)
                 .collect(Collectors.toList());
+    }
+
+    private void deductStockQuqntities(List<Product> products) {
+        List<String> stockProductNumbers = extractStockProductNumbers(products);
+
+        Map<String, Stock> stockMap = createStockMapBy(stockProductNumbers);
+
+        Map<String, Long> productCountingMap = createCountingMapBy(stockProductNumbers);
+
+        // 재고 차감 시도 (stockProductNumbers에 대해서는 중복 제거를 해줘야 한다)
+        for (String stockProductNumebr : new HashSet<>(stockProductNumbers)) {
+            Stock stock = stockMap.get(stockProductNumebr);
+            int buyQuantity = productCountingMap.get(stockProductNumebr).intValue();
+
+            if (stock.isQuantityLessThan(buyQuantity)) {
+                throw new IllegalArgumentException("재고가 부족한 상품이 있습니다.");
+            }
+            stock.deductQuantity(buyQuantity);
+
+        }
+    }
+
+    private List<String> extractStockProductNumbers(List<Product> products) {
+        // 재고 차감 대상인 상품들만 filter
+        return products.stream()
+                .filter(product -> ProductType.containsStockType(product.getType()))
+                .map(product -> product.getProductNumber())
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Stock> createStockMapBy(List<String> stockProductNumbers) {
+        // 재고 엔티티 조회
+        List<Stock> stocks = stockRepository.findAllByProductNumberIn(stockProductNumbers);
+        // list을 계속적으로 돌긴 보단, map으로 바꿔서 조회하는게 더 효율적이다.
+        Map<String, Stock> stockMap = stocks.stream()
+                .collect(Collectors.toMap(Stock::getProductNumber, stock -> stock));
+        return stockMap;
+    }
+
+    private Map<String, Long> createCountingMapBy(List<String> stockProductNumbers) {
+        // 상품별 counting
+        Map<String, Long> productCountingMap = stockProductNumbers.stream()
+                .collect(Collectors.groupingBy(productNumber -> productNumber, Collectors.counting()));
+        return productCountingMap;
     }
 
 }
