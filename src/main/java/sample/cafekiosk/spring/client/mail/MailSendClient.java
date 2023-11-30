@@ -1,7 +1,6 @@
 package sample.cafekiosk.spring.client.mail;
 
 import org.springframework.stereotype.Component;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

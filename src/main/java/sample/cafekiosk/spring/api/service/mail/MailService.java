@@ -1,7 +1,6 @@
 package sample.cafekiosk.spring.api.service.mail;
 
 import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
 import sample.cafekiosk.spring.client.mail.MailSendClient;
 import sample.cafekiosk.spring.domain.history.mail.MailSendHistory;
