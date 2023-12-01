@@ -9,25 +9,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
-
-import sample.cafekiosk.spring.client.mail.MailSendClient;
+import sample.cafekiosk.spring.IntegrationTestSupport;
 import sample.cafekiosk.spring.domain.history.mail.MailSendHistoryRepository;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class MailServiceTest {
+class MailServiceTest extends IntegrationTestSupport {
 
     @Autowired
     private MailService mailService;
 
     @Autowired
     private MailSendHistoryRepository mailSendHistoryRepository;
-
-    @MockBean
-    private MailSendClient mailSendClient;
 
     @AfterEach
     void tearDown() {
